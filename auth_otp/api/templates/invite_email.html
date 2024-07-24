@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>You're Invited! Join [App Name] with Your Invitation Code</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        color: #333333;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .content {
+        font-size: 16px;
+        line-height: 1.6;
+      }
+      .otp {
+        font-size: 24px;
+        font-weight: bold;
+        color: #d9534f;
+        text-align: center;
+        margin: 20px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="content">
+        <p>Dear {{ username }},</p>
+        <p>
+            We are excited to invite you to join [App Name], where you can [briefly describe the benefits or features of your app].
+            To get started, simply use the invitation code below:
+        </p>
+        <div class="otp"></b>Invitation Code: {{otp_6}}</p></div>
+        <p><strong>How to Use Your Invitation Code:</strong></p>
+            <ol>
+                <li>Visit our registration page.</li>
+                <li>During the sign-up process, enter the invitation code in the designated field.</li>
+                <li>Start exploring <strong>[App Name]</strong> and all the features we have to offer!</li>
+            </ol>
+            <p>If you have any questions or need assistance, feel free to reply to this email.</p>
+      </div>
+    </div>
+  </body>
+</html>

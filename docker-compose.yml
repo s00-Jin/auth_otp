@@ -1,0 +1,44 @@
+version: "3.0"
+
+services:
+  app:
+    build: .
+    image: auth_otp
+    command: uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --reload
+    expose:
+      - 8000
+    env_file:
+      - .env
+    volumes:
+      - ./:/app
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:12.0
+    hostname: auth-otp-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=authdb
+    volumes:
+      - postgres-data:/var/lib/postgresql/data/
+    ports:
+      - "5433:5432"
+
+  nginx:
+    build: ./nginx
+    image: auth-otp-nginx
+    volumes:
+      - ./static/:/app/static/
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+
+  redis:
+    image: redis:latest
+
+volumes:
+  postgres-data:
