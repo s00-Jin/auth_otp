@@ -4,6 +4,7 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
+from django.contrib.auth.hashers import make_password
 
 import uuid
 
@@ -59,3 +60,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
+
+
+class ChangePasswordPreSave(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    password = models.CharField(max_length=300)
+
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)

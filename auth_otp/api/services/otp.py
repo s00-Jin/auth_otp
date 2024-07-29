@@ -17,17 +17,20 @@ User = get_user_model()
 
 def send_otp_email(user, action):
     totp_6 = pyotp.TOTP(pyotp.random_base32(), interval=300)
+    totp_4 = pyotp.TOTP(pyotp.random_base32(), digits=4, interval=300)
+    otp_4 = totp_4.now()
     otp_6 = totp_6.now()
 
     otpmodel, created = OTP.objects.get_or_create(user=user, action=action)
 
     otpmodel.otp = otp_6
+    otpmodel.user_identifier = otp_4
     otpmodel.action = action
     otpmodel.save()
 
     subject = f"Your OTP for {action}"
     html_content = render_to_string(
-        "otp_email.html", {"otp_6": otp_6, "username": user.username}
+        "otp_email.html", {"otp_6": otp_6, "otp_4": otp_4, "username": user.username}
     )
     text_content = strip_tags(html_content)
     from_email = settings.DEFAULT_FROM_EMAIL
@@ -68,10 +71,12 @@ def send_invite_email(email, action):
     )
 
 
-def check_otp(otp, action):
+def check_otp(otp, action, user_identifier):
 
     try:
-        otp_instance = OTP.objects.get(otp=otp, action=action)
+        otp_instance = OTP.objects.get(
+            otp=otp, action=action, user_identifier=user_identifier
+        )
     except OTP.DoesNotExist:
         raise ValidationError({"error": "Invalid OTP"})
     return otp_instance

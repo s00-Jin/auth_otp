@@ -6,6 +6,8 @@ from .views.users import (
     SimpleGetView,
     RegisterCreateAPIView,
     ForgotPasswordOTPSent,
+    ForgotPassword,
+    ChangePasswordOTPSent,
 )
 from .views.otp import InviteCreateAPIView, OTPCheckView
 
@@ -18,7 +20,17 @@ urlpatterns = [
         "login/otp-verify", CustomTokenObtainPairView.as_view(), name="login_otp_verify"
     ),
     path("register/", RegisterCreateAPIView.as_view(), name="register"),
-    path("forgot-password/", ForgotPasswordOTPSent.as_view(), name="forgot_password"),
+    path(
+        "forgot-password/OTP/",
+        ForgotPasswordOTPSent.as_view(),
+        name="forgot_password_otp",
+    ),
+    path("forgot-password/", ForgotPassword.as_view(), name="forgot_password"),
+    path(
+        "change-password/OTP/",
+        ChangePasswordOTPSent.as_view(),
+        name="change_password_otp",
+    ),
     path("otp-check/", OTPCheckView.as_view(), name="otp_check"),
     path("invite-code/email/", InviteCreateAPIView.as_view(), name="invite-code_email"),
     path("simple-get/", SimpleGetView.as_view(), name="simple_get"),

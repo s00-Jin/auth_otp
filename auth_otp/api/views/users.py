@@ -1,9 +1,9 @@
 from django.contrib.auth import authenticate, get_user_model
 
-
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from ..serializers.users import (
     OTPLoginSerializer,
@@ -11,9 +11,10 @@ from ..serializers.users import (
     RegisterCreateSerializer,
     ForgotChangePassSerializer,
 )
-from ..serializers.otp import CreateInviteSerializer
+from ..serializers.otp import CreateInviteSerializer, OTPCheckSerializer
 from ..services.otp import send_otp_email
-from rest_framework.views import APIView
+from auth_otp.otp.models import OTP
+from auth_otp.users.models import ChangePasswordPreSave
 
 
 User = get_user_model()
@@ -96,6 +97,67 @@ class ForgotPasswordOTPSent(generics.CreateAPIView):
             {"message": "OTP(One Time Password) was sent to your email/mobile number"},
             status=status.HTTP_200_OK,
         )
+
+
+class ForgotPassword(generics.UpdateAPIView):
+    serializer_class = ForgotChangePassSerializer
+    permission_classes = [AllowAny]
+
+    def update(self, request, *args, **kwargs):
+        user_identifier = request.query_params.get("user_identifier")
+
+        try:
+            otp_instance = OTP.objects.get(user_identifier=user_identifier)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        user = otp_instance.user
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            user.set_password(serializer.validated_data["password"])
+            user.save()
+            otp_instance.delete()
+
+            return Response(
+                {"message": "Password updated successfully"}, status=status.HTTP_200_OK
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ChangePasswordOTPSent(generics.CreateAPIView):
+    serializer_class = ForgotChangePassSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        action = "ChangePass"
+
+        if serializer.is_valid():
+            user = request.user
+            old_password = serializer.validated_data.get("old_password")
+
+            pre_save_pass = ChangePasswordPreSave.objects.create(user=user)
+
+            if old_password and not user.check_password(old_password):
+                return Response(
+                    {"error": "Old password is incorrect"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            pre_save_pass.set_password(serializer.validated_data["password"])
+            pre_save_pass.save()
+
+            send_otp_email(user, action)
+            return Response(
+                {
+                    "message": "OTP(One Time Password) was sent to your email/mobile number"
+                },
+                status=status.HTTP_200_OK,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SimpleGetView(APIView):
