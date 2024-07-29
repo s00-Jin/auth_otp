@@ -70,14 +70,16 @@ class RegisterCreateSerializer(serializers.ModelSerializer):
 
 class CustomTokenObtainPairSerializer(serializers.Serializer):
     otp = serializers.CharField(required=True)
+    user_identifier = serializers.CharField(required=True)
     action = serializers.CharField(required=True)
 
     def validate(self, attrs):
         otp = attrs.get("otp")
         action = attrs.get("action")
+        user_identifier = attrs.get("user_identifier")
         user = None
 
-        otp_instance = check_otp(otp, action)
+        otp_instance = check_otp(otp, action, user_identifier)
 
         if otp_instance.is_valid():
             otp_instance.delete()

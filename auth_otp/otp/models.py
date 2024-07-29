@@ -15,6 +15,7 @@ class OTP(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="otps")
     action = models.CharField(max_length=20, choices=ACTION_CHOICES)
     otp = models.CharField(max_length=6, unique=True)
+    user_identifier = models.CharField(max_length=4, unique=True)
     is_validated = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

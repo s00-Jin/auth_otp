@@ -7,6 +7,12 @@ from ..permissions import IsAuthenticatedAndStaff
 from ..serializers.otp import CreateInviteSerializer, OTPCheckSerializer
 from ..services.otp import send_invite_email, check_otp
 
+from auth_otp.users.models import ChangePasswordPreSave
+
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 
 class InviteCreateAPIView(generics.CreateAPIView):
     serializer_class = CreateInviteSerializer
@@ -33,15 +39,41 @@ class OTPCheckView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         otp = request.data.get("otp")
         action = request.data.get("action")
+        user_identifier = request.data.get("user_identifier")
 
-        otp_instance = check_otp(otp, action)
+        otp_instance = check_otp(otp, action, user_identifier)
+        user = User.objects.get(email=otp_instance.user)
 
         if otp_instance.is_valid():
             otp_instance.is_validated = True
-            return Response(
-                {"message": "OTP Validated"},
-                status=status.HTTP_200_OK,
-            )
+            if otp_instance.action == "ResetPass":
+                return Response(
+                    {
+                        "message": {
+                            "status": "OTP Validated",
+                            "Forgot-pass-url": f"http://localhost/api/forgot-password/?user_identifier={otp_instance.user_identifier}",
+                        }
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            if otp_instance.action == "ChangePass":
+                try:
+                    change_password_instance = ChangePasswordPreSave.objects.get(
+                        user=otp_instance.user
+                    )
+                except ChangePasswordPreSave.DoesNotExist:
+                    return Response(
+                        {"error": "Password change request not found"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                user.password = change_password_instance.password
+                user.save()
+                change_password_instance.delete()
+                otp_instance.delete()
+                return Response(
+                    {"message": "Password changed successfully"},
+                    status=status.HTTP_200_OK,
+                )
         otp_instance.delete()
         return Response(
             {"error": "Invalid OTP either expired OTP or wrong OTP"},

@@ -8,3 +8,4 @@ class CreateInviteSerializer(serializers.Serializer):
 class OTPCheckSerializer(serializers.Serializer):
     otp = serializers.CharField(required=True)
     action = serializers.CharField(required=True)
+    user_identifier = serializers.CharField(required=True)
