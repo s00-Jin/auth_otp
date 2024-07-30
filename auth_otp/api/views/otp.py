@@ -56,24 +56,6 @@ class OTPCheckView(generics.CreateAPIView):
                     },
                     status=status.HTTP_200_OK,
                 )
-            if otp_instance.action == "ChangePass":
-                try:
-                    change_password_instance = ChangePasswordPreSave.objects.get(
-                        user=otp_instance.user
-                    )
-                except ChangePasswordPreSave.DoesNotExist:
-                    return Response(
-                        {"error": "Password change request not found"},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                user.password = change_password_instance.password
-                user.save()
-                change_password_instance.delete()
-                otp_instance.delete()
-                return Response(
-                    {"message": "Password changed successfully"},
-                    status=status.HTTP_200_OK,
-                )
         otp_instance.delete()
         return Response(
             {"error": "Invalid OTP either expired OTP or wrong OTP"},
