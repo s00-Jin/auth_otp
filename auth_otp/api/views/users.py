@@ -12,7 +12,7 @@ from ..serializers.users import (
     ForgotChangePassSerializer,
 )
 from ..serializers.otp import CreateInviteSerializer, OTPCheckSerializer
-from ..services.otp import send_otp_email
+from ..services.otp import send_otp_email, check_otp
 from auth_otp.otp.models import OTP
 from auth_otp.users.models import ChangePasswordPreSave
 
@@ -158,6 +158,43 @@ class ChangePasswordOTPSent(generics.CreateAPIView):
                 status=status.HTTP_200_OK,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ChangePasswordAPIView(generics.UpdateAPIView):
+    serializer_class = OTPCheckSerializer
+
+    def update(self, request, *args, **kwargs):
+        otp = request.data.get("otp")
+        action = request.data.get("action")
+        user_identifier = request.data.get("user_identifier")
+        user = request.user
+
+        otp_instance = check_otp(otp, action, user_identifier)
+
+        if otp_instance.is_valid():
+            otp_instance.is_validated = True
+            try:
+                change_password_instance = ChangePasswordPreSave.objects.get(
+                    user=otp_instance.user
+                )
+            except ChangePasswordPreSave.DoesNotExist:
+                return Response(
+                    {"error": "Password change request not found"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            user.password = change_password_instance.password
+            user.save()
+            change_password_instance.delete()
+            otp_instance.delete()
+            return Response(
+                {"message": "Password changed successfully"},
+                status=status.HTTP_200_OK,
+            )
+        otp_instance.delete()
+        return Response(
+            {"error": "Invalid OTP either expired OTP or wrong OTP"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 class SimpleGetView(APIView):

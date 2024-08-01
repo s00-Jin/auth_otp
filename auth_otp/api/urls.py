@@ -8,6 +8,7 @@ from .views.users import (
     ForgotPasswordOTPSent,
     ForgotPassword,
     ChangePasswordOTPSent,
+    ChangePasswordAPIView,
 )
 from .views.otp import InviteCreateAPIView, OTPCheckView
 
@@ -30,6 +31,11 @@ urlpatterns = [
         "change-password/OTP/",
         ChangePasswordOTPSent.as_view(),
         name="change_password_otp",
+    ),
+    path(
+        "change-password",
+        ChangePasswordAPIView.as_view(),
+        name="change_password",
     ),
     path("otp-check/", OTPCheckView.as_view(), name="otp_check"),
     path("invite-code/email/", InviteCreateAPIView.as_view(), name="invite-code_email"),
