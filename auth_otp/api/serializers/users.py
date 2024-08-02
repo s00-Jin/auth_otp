@@ -4,7 +4,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import ValidationError
 
 from auth_otp.otp.models import InviteOTP
-from auth_otp.users.models import User
+from auth_otp.users.models import User, UserDeletionPreSave
 
 from ..services.otp import check_otp
 
@@ -121,3 +121,12 @@ class ForgotChangePassSerializer(serializers.Serializer):
                 {"error": "password and re_password fields didn't match"}
             )
         return attrs
+
+
+class UserDeletionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserDeletionPreSave
+        fields = [
+            "reason",
+        ]

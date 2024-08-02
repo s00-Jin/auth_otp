@@ -10,11 +10,12 @@ from ..serializers.users import (
     CustomTokenObtainPairSerializer,
     RegisterCreateSerializer,
     ForgotChangePassSerializer,
+    UserDeletionSerializer,
 )
 from ..serializers.otp import CreateInviteSerializer, OTPCheckSerializer
 from ..services.otp import send_otp_email, check_otp
 from auth_otp.otp.models import OTP
-from auth_otp.users.models import ChangePasswordPreSave
+from auth_otp.users.models import ChangePasswordPreSave, UserDeletionPreSave
 
 
 User = get_user_model()
@@ -195,6 +196,26 @@ class ChangePasswordAPIView(generics.UpdateAPIView):
             {"error": "Invalid OTP either expired OTP or wrong OTP"},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+class UserDeletionAPIView(generics.CreateAPIView):
+    serializer_class = UserDeletionSerializer
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        reason = request.data.get("reason")
+
+        try:
+            UserDeletionPreSave.objects.create(user=user, reason=reason)
+            return Response(
+                {"message": "User deletion request successfully made"},
+                status=status.HTTP_201_CREATED,
+            )
+        except:
+            return Response(
+                {"Error": "User deletion request unsuccessful"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class SimpleGetView(APIView):
