@@ -68,3 +68,11 @@ class ChangePasswordPreSave(models.Model):
 
     def set_password(self, raw_password):
         self.password = make_password(raw_password)
+
+
+class UserDeletionPreSave(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    reason = models.TextField(max_length=1000, null=True)

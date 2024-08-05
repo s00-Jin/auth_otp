@@ -13,6 +13,8 @@ qrcode==7.4.2
 django-constance
 channels
 channels-redis
+django-celery-results
+django-celery-beat
 
 # Infra
 uvicorn[standard]
