@@ -11,6 +11,7 @@ class OTP(models.Model):
         ("ResetPass", "Reset Password"),
         ("ChangePass", "Change Password"),
         ("Login", "Login"),
+        ("UserDelete", "User Deletion"),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="otps")
     action = models.CharField(max_length=20, choices=ACTION_CHOICES)

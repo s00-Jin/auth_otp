@@ -50,8 +50,7 @@ def send_invite_email(email, action):
     totp_6 = pyotp.TOTP(pyotp.random_base32(), interval=300)
     otp_6 = totp_6.now()
 
-    otpmodel = InviteOTP(email=email, invite_otp=otp_6)
-    otpmodel.save()
+    InviteOTP.objects.create(email=email, invite_otp=otp_6)
 
     subject = "You're Invited! Join [App Name] with Your Invitation Code"
     html_content = render_to_string(

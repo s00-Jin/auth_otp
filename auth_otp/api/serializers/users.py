@@ -50,7 +50,7 @@ class RegisterCreateSerializer(serializers.ModelSerializer):
             except InviteOTP.DoesNotExist:
                 raise serializers.ValidationError(
                     {
-                        "invite_code": "Invalid invite code or email(Note: Used the invited email address in registering to the app/website)."
+                        "invite_code": "Invalid invite code or email(Note: Use the invited email address in registering to the app/website)."
                     }
                 )
 
@@ -125,8 +125,11 @@ class ForgotChangePassSerializer(serializers.Serializer):
 
 class UserDeletionSerializer(serializers.ModelSerializer):
 
+    action = serializers.CharField(required=True)
+
     class Meta:
         model = UserDeletionPreSave
         fields = [
             "reason",
+            "action",
         ]

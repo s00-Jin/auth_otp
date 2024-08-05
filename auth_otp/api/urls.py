@@ -10,6 +10,7 @@ from .views.users import (
     ChangePasswordOTPSent,
     ChangePasswordAPIView,
     UserDeletionAPIView,
+    VerifyUserDeletionAPIView,
 )
 from .views.otp import InviteCreateAPIView, OTPCheckView
 
@@ -42,6 +43,11 @@ urlpatterns = [
         "user-deletion/create/",
         UserDeletionAPIView.as_view(),
         name="user_deletion_record_creation",
+    ),
+    path(
+        "user-deletion/verify/",
+        VerifyUserDeletionAPIView.as_view(),
+        name="user_deletion_verification",
     ),
     path("otp-check/", OTPCheckView.as_view(), name="otp_check"),
     path("invite-code/email/", InviteCreateAPIView.as_view(), name="invite-code_email"),

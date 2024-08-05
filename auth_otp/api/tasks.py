@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from datetime import timedelta
 
 from auth_otp.users.models import UserDeletionPreSave
+from auth_otp.otp.models import InviteOTP
 
 User = get_user_model()
 
@@ -19,10 +20,13 @@ def check_user_deletions():
         updated_at__lte=thirty_days_ago, is_verified=True
     )
 
-    user_ids = user_delete.values_list("user_id", flat=True)
-    users = User.objects.filter(id__in=user_ids)
-
-    for user in users:
+    for deletion in user_delete:
+        user_id = deletion.user_id
+        user = User.objects.get(id=user_id)
         user.delete()
+        invites = InviteOTP.objects.filter(email=user.email)
+        for invite in invites:
+            invite.delete()
+        deletion.delete()
 
-    return "Data deleted successfully"
+    return "User deletions processed successfully."

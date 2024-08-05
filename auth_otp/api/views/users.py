@@ -204,6 +204,9 @@ class UserDeletionAPIView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         user = request.user
         reason = request.data.get("reason")
+        action = request.data.get("action")
+
+        send_otp_email(user, action)
 
         try:
             UserDeletionPreSave.objects.create(user=user, reason=reason)
@@ -216,6 +219,32 @@ class UserDeletionAPIView(generics.CreateAPIView):
                 {"Error": "User deletion request unsuccessful"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+
+class VerifyUserDeletionAPIView(generics.CreateAPIView):
+    serializer_class = OTPCheckSerializer
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        otp = request.data.get("otp")
+        user_identifier = request.data.get("user_identifier")
+        action = request.data.get("action")
+
+        try:
+            OTP.objects.get(otp=otp, user_identifier=user_identifier, action=action)
+        except OTP.DoesNotExist:
+            return Response(
+                {"Error": "User deletion verification unsuccessful"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        user_delete = UserDeletionPreSave.objects.get(user=user)
+        user_delete.is_verified = True
+        user_delete.save()
+
+        return Response(
+            {"message": "User deletion request successfully verified"},
+            status=status.HTTP_200_OK,
+        )
 
 
 class SimpleGetView(APIView):
