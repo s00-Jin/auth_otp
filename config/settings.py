@@ -14,6 +14,8 @@ from pathlib import Path
 import os
 import environ
 from datetime import timedelta
+from cryptography.fernet import Fernet
+import base64
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -51,6 +53,10 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
 
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY").encode()
+print(ENCRYPTION_KEY)
+CIPHER_SUITE = Fernet(ENCRYPTION_KEY)
+
 
 # Application definition
 
@@ -70,12 +76,15 @@ THIRD_PARTY_APPS = [
     "constance",
     "django_celery_results",
     "django_celery_beat",
+    "channels",
+    "corsheaders",
 ]
 
 LOCAL_APPS = [
     "auth_otp.api",
     "auth_otp.otp",
     "auth_otp.users",
+    "auth_otp.chats",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -83,6 +92,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -175,7 +185,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
 
-INVITE_STATUS = True
+INVITE_STATUS = False
 
 SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
@@ -210,3 +220,24 @@ SIMPLE_JWT = {
 
 # celery backend settings
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+# Cors Header settings
+
+CORS_ALLOWED_ORIGINS = []
+
+CORS_ALLOW_HEADERS = [
+    "cache-control",
+    "content-type",
+    "x-requested-with",
+]
+
+# Channel settings
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis", 6379)],
+        },
+    },
+}
